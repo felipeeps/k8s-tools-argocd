@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aws-ebs-csi-driver
+  namespace: argocd
+  labels:
+    project: infra-components
+
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+
+spec:
+  project: default
+  syncPolicy:
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - PrunePropagationPolicy=background
+      - CreateNamespace=true
+  source:
+    chart: aws-ebs-csi-driver
+    repoURL: "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
+    targetRevision: 2.13.0
+    helm:
+      values: |-
+        # True if enable volume scheduling for dynamic volume provisioning
+        enableVolumeScheduling: true
+
+        # True if enable volume resizing
+        enableVolumeResizing: true
+
+        # True if enable volume snapshot
+        enableVolumeSnapshot: true
+
+        nodeSelector: {nodegroup-name: node-name}
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: kube-system
