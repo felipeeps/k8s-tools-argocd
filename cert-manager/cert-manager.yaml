@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+
+spec:
+  project: default
+  syncPolicy:
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - PrunePropagationPolicy=background
+      - CreateNamespace=true
+  source:
+    chart: cert-manager
+    repoURL: "https://charts.jetstack.io"
+    targetRevision: 1.9.1
+    helm:
+      parameters:
+        - name: installCRDs
+          value: "true"
+        - name: prometheus.enabled
+          value: "true"
+      values: |
+        nodeSelector: 
+          nodegroup-name: node-name
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: cert-manager
